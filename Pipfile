@@ -4,11 +4,13 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
-gcp-functions-emulator = "*"
 
 [packages]
-google-cloud = "*"
-beatmachine = {git="https://github.com/dhsavell/beat-machine", tag="v2.0.0"}  # PyPI release seems to be missing modules...
+scipy = "*"
+beatmachine = "*"
+uvicorn = "*"
+fastapi = "*"
+python-multipart = "*"
 
 [requires]
 python_version = "3.7"

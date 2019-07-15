@@ -1,16 +1,22 @@
 import http
 import io
 import json
-import os
-import tempfile
+from tempfile import NamedTemporaryFile
 
 import beatmachine as bm
-import flask
+from fastapi import FastAPI, Form, File
+from starlette.responses import StreamingResponse
+
+app = FastAPI()
 
 
-def process_song(request: flask.Request):
+@app.post('/')
+async def process_song(
+        effects: str = Form(default=None),
+        song: bytes = File(default=None),
+):
     try:
-        effect_data = json.loads(request.form['effects'])
+        effect_data = json.loads(effects)
         effects = [bm.effects.load_from_dict(e) for e in effect_data]
     except KeyError:
         return 'Missing effects', http.HTTPStatus.BAD_REQUEST
@@ -20,13 +26,8 @@ def process_song(request: flask.Request):
     if len(effects) > 10:
         return 'Too many effects (max is 10)', http.HTTPStatus.BAD_REQUEST
 
-    try:
-        song_file = request.files['song']
-    except KeyError:
-        return 'Missing song', http.HTTPStatus.BAD_REQUEST
-
-    with tempfile.NamedTemporaryFile(suffix='.mp3', delete=False) as fp:
-        song_file.save(fp)
+    with NamedTemporaryFile(suffix='.mp3', delete=False) as fp:
+        fp.write(song)
         filename = fp.name
 
     beats = bm.loader.load_beats_by_signal(filename)
@@ -36,6 +37,4 @@ def process_song(request: flask.Request):
     sum(list(edited_beats)).export(buf, format='mp3')
     buf.seek(0)
 
-    os.remove(filename)
-
-    return flask.send_file(buf, mimetype='audio/mpeg')
+    return StreamingResponse(buf, media_type='audio/mpeg')

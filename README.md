@@ -1,2 +1,3 @@
 # beat-func
-A serverless function providing the Beat Machine as a service.
+
+A Cloud Run image that provides the Beat Machine as a serverless function.
