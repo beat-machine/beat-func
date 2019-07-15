@@ -14,4 +14,4 @@ RUN set -x && \
     pip install --no-cache cython numpy && \
     pip install --no-cache -r requirements.txt
 
-CMD uvicorn --bind :${PORT} main:app
+CMD uvicorn --port ${PORT} main:app
