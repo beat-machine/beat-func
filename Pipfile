@@ -14,3 +14,7 @@ python-multipart = "*"
 
 [requires]
 python_version = "3.7"
+
+[scripts]
+deploy-gcr = "gcloud builds submit --tag gcr.io/beat-machine-244519/beatfunc"
+deploy-run = "gcloud beta run deploy --image gcr.io/beat-machine-244519/beatfunc --platform managed"
