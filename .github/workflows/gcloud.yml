@@ -2,7 +2,8 @@ name: Google Cloud
 
 on:
   push:
-    - master
+    branches:
+      - master
 
 jobs:
   build:
