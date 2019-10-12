@@ -27,4 +27,4 @@ jobs:
         PROJECT_ID: ${{secrets.PROJECT_ID}}
         APPLICATION_CREDENTIALS: ${{secrets.APPLICATION_CREDENTIALS}}
       with:
-        args: beta run deploy --quiet --image gcr.io/beat-machine-244519/beatfunc --platform managed
+        args: --quiet beta run deploy --image gcr.io/beat-machine-244519/beatfunc --platform managed
