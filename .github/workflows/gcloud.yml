@@ -1,6 +1,8 @@
 name: Google Cloud
 
-on: [push]
+on:
+  push:
+    - master
 
 jobs:
   build:
@@ -13,6 +15,7 @@ jobs:
         APPLICATION_CREDENTIALS: ${{secrets.GOOGLE_APPLICATION_CREDENTIALS}}
       with:
         args: builds submit --tag gcr.io/beat-machine-244519/beatfunc
+
   deploy:
     runs-on: ubuntu-latest
     steps:
