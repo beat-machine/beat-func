@@ -7,7 +7,7 @@ import timeit
 from tempfile import NamedTemporaryFile
 
 import beatmachine as bm
-from fastapi import FastAPI, Form, File
+from fastapi import FastAPI, Form, File, UploadFile
 from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import StreamingResponse
 
@@ -35,7 +35,7 @@ app.add_middleware(
 
 @app.post("/")
 async def process_song(
-    effects: str = Form(default=None), song: bytes = File(default=None)
+    effects: str = Form(default=None), song: UploadFile = File(default=None)
 ):
     logger.info("Received song data")
     try:
@@ -46,7 +46,11 @@ async def process_song(
             settings = effect_data["settings"]
             effect_data = effect_data["effects"]
 
-        effects = [bm.effects.load_from_dict(e) for e in effect_data]
+        try:
+            effects = [bm.effects.load_from_dict(e) for e in effect_data]
+        except TypeError as e:
+            logger.error(f"Invalid effect data: {e}")
+            return "Invalid effect data", http.HTTPStatus.BAD_REQUEST
     except KeyError as e:
         logger.error(f"KeyError when parsing JSON, assuming missing data: {e}")
         return "Missing effects", http.HTTPStatus.BAD_REQUEST
@@ -60,7 +64,7 @@ async def process_song(
         return "Not enough effects (min is 1)", http.HTTPStatus.BAD_REQUEST
 
     with NamedTemporaryFile(suffix=".mp3", delete=False) as fp:
-        fp.write(song)
+        fp.write(await song.read())
         filename = fp.name
 
     kwargs = {"min_bpm": 60, "max_bpm": 300}
@@ -72,14 +76,19 @@ async def process_song(
         kwargs["max_bpm"] = suggested_bpm + drift
 
     start_time = timeit.default_timer()
-    logger.info(f"Starting processing with settings: {kwargs}")
+    logger.info(f"Starting with settings: {kwargs}")
 
-    beats = bm.loader.load_beats_by_signal(filename, **kwargs)
-    edited_beats = bm.editor.apply_effects(beats, effects)
-    logger.info(f"Generator created, beginning render")
+    def load(f):
+        return bm.loader.load_beats_by_signal(f, online_mode=True, **kwargs)
+
+    logger.info(f"Splitting and processing song")
+    beats = bm.Beats.from_song(filename, loader=load)
+
+    for e in effects:
+        beats = beats.apply(e)
 
     buf = io.BytesIO()
-    sum(list(edited_beats)).export(buf, format="mp3")
+    beats.consolidate().export(buf, format="mp3")
     elapsed = timeit.default_timer() - start_time
     logger.info(f"Finished in {elapsed}s, streaming result to client")
     buf.seek(0)
