@@ -1,4 +1,4 @@
-FROM python:3.7
+FROM python:3.7.5-slim
 
 ENV APP_HOME /srv
 ENV PORT 80
@@ -11,7 +11,8 @@ RUN set -x && \
     apt-get install -y libopenblas-dev portaudio19-dev fftw-dev ffmpeg
 
 RUN set -x && \
-    pip install --no-cache cython numpy && \
-    pip install --no-cache -r requirements.txt
+    pip install --no-cache poetry && \
+    poetry config settings.virtualenvs.create false && \
+    poetry install
 
 CMD uvicorn --host 0.0.0.0 --port ${PORT} main:app
