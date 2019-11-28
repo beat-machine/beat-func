@@ -79,7 +79,7 @@ async def process_song_from_youtube(payload: YoutubeSongPayload):
     raw_filename = (
         YouTube(payload.youtube_url).streams.filter(only_audio=True).first().download()
     )
-    mp3_filename = "asdf.mp3"
+    mp3_filename = str(uuid.uuid4())
 
     logger.info("Converting to mp3")
     ffmpeg.input(raw_filename).output(mp3_filename).run()
