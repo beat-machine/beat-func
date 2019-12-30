@@ -15,4 +15,4 @@ RUN set -x && \
     poetry config virtualenvs.create false && \
     poetry install
 
-CMD poetry run uvicorn --host 0.0.0.0 --port ${PORT} main:app
+CMD uvicorn --host 0.0.0.0 --port ${PORT} main:app
