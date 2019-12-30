@@ -12,7 +12,6 @@ RUN set -x && \
 
 RUN set -x && \
     pip install --no-cache poetry && \
-    poetry config settings.virtualenvs.create false && \
     poetry install
 
-CMD uvicorn --host 0.0.0.0 --port ${PORT} main:app
+CMD poetry run uvicorn --host 0.0.0.0 --port ${PORT} main:app
