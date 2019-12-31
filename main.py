@@ -9,12 +9,11 @@ from tempfile import NamedTemporaryFile, mkstemp
 
 import beatmachine as bm
 import ffmpeg
+import youtube_dl
 from fastapi import FastAPI, Form, File, UploadFile, HTTPException
 from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import StreamingResponse, JSONResponse
 from typing import List
-from pytube import YouTube
-from pytube.exceptions import RegexMatchError
 from pydantic import BaseModel
 
 logger = logging.getLogger("beatfunc")
@@ -97,25 +96,26 @@ async def process_song_from_youtube(payload: YoutubeSongPayload):
     logger.info("Downloading file")
 
     try:
-        raw_filename = (
-            YouTube(payload.youtube_url)
-            .streams.filter(only_audio=True)
-            .first()
-            .download(filename=str(uuid.uuid4()))
-        )
-    except KeyError:
+        base_filename = str(uuid.uuid4())
+        with youtube_dl.YoutubeDL({
+            'format': 'bestaudio/best',
+            'postprocessors': [{
+                'key': 'FFmpegExtractAudio',
+                'preferredcodec': 'mp3',
+                'preferredquality': '192',
+            }],
+            'outtmpl': base_filename + ".mp4",
+            'prefer_ffmpeg': True,
+        }) as ydl:
+            ydl.download([payload.youtube_url])
+    except Exception as e:
+        logger.error(e)
         raise HTTPException(
             detail="Failed to download video", status_code=http.HTTPStatus.BAD_REQUEST
         )
 
-    mp3_filename = str(uuid.uuid4()) + ".mp3"
-
-    logger.info("Converting to mp3")
-    ffmpeg.input(raw_filename).output(mp3_filename).run()
-    os.remove(raw_filename)
-
     return await process_song(
-        effects, mp3_filename, _settings_to_kwargs(payload.settings)
+        effects, base_filename + ".mp3", _settings_to_kwargs(payload.settings)
     )
 
 

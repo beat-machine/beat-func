@@ -293,14 +293,6 @@ version = "0.0.5"
 six = ">=1.4.0"
 
 [[package]]
-category = "main"
-description = "A pythonic library for downloading YouTube Videos."
-name = "pytube"
-optional = false
-python-versions = "*"
-version = "9.5.3"
-
-[[package]]
 category = "dev"
 description = "a python refactoring library..."
 name = "rope"
@@ -395,8 +387,16 @@ optional = false
 python-versions = "*"
 version = "1.11.2"
 
+[[package]]
+category = "main"
+description = "YouTube video downloader"
+name = "youtube-dl"
+optional = false
+python-versions = "*"
+version = "2019.12.25"
+
 [metadata]
-content-hash = "19f891127dbc4f2676a74f4974013f04e1cfc7f8ea3ef75e514d577ce8cd1e77"
+content-hash = "10b24e0d3d87d2f37111abd06258f2c28e82ded3d7e303174cbe0860494cdcbc"
 python-versions = "^3.7"
 
 [metadata.files]
@@ -580,10 +580,6 @@ pyparsing = [
 python-multipart = [
     {file = "python-multipart-0.0.5.tar.gz", hash = "sha256:f7bb5f611fc600d15fa47b3974c8aa16e93724513b49b5f95c81e6624c83fa43"},
 ]
-pytube = [
-    {file = "pytube-9.5.3-py3-none-any.whl", hash = "sha256:8ab0dc5e7443450361e2e6991c4df99ea37d109f42e6804933644821aa609b77"},
-    {file = "pytube-9.5.3.tar.gz", hash = "sha256:b95c9b836e557d5df126397dff997b73fe1786c8cb0ad598bf1d49e4046d9141"},
-]
 rope = [
     {file = "rope-0.14.0-py2-none-any.whl", hash = "sha256:6b728fdc3e98a83446c27a91fc5d56808a004f8beab7a31ab1d7224cecc7d969"},
     {file = "rope-0.14.0-py3-none-any.whl", hash = "sha256:f0dcf719b63200d492b85535ebe5ea9b29e0d0b8aebeb87fe03fc1a65924fdaf"},
@@ -687,4 +683,8 @@ websockets = [
 ]
 wrapt = [
     {file = "wrapt-1.11.2.tar.gz", hash = "sha256:565a021fd19419476b9362b05eeaa094178de64f8361e44468f9e9d7843901e1"},
+]
+youtube-dl = [
+    {file = "youtube_dl-2019.12.25-py2.py3-none-any.whl", hash = "sha256:54067a50647e2ba159544bf50f8c5f749cada39c7815ab097a89c11b820a0712"},
+    {file = "youtube_dl-2019.12.25.tar.gz", hash = "sha256:5f73e8c66c07d632b0fc69f715247fe76f38a28c0c5f13bd0651ecd193c2f1c6"},
 ]
