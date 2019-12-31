@@ -35,6 +35,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
+    max_age=300,
     allow_methods=["*"],
     allow_headers=["*"],
 )
