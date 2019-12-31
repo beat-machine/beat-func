@@ -97,19 +97,6 @@ async def process_song_from_youtube(payload: YoutubeSongPayload):
     logger.info("Downloading file")
 
     try:
-        yt = YouTube(payload.youtube_url)
-
-        if (
-            yt.player_config_args.get("player_response")
-            .get("videoDetails")
-            .get("lengthSeconds")
-            > 360
-        ):
-            raise HTTPException(
-                detail="Video is too long (max is 6 minutes)",
-                status_code=http.HTTPStatus.REQUEST_ENTITY_TOO_LARGE,
-            )
-
         raw_filename = (
             YouTube(payload.youtube_url)
             .streams.filter(only_audio=True)
