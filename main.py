@@ -15,30 +15,30 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import StreamingResponse, JSONResponse
 from typing import List
 from pydantic import BaseModel
+from mutagen.mp3 import MP3, MutagenError
 
-logger = logging.getLogger("beatfunc")
+MAX_LENGTH = 60 * 6 + 30
 
-app = FastAPI()
-
-origins = [
+ORIGINS = [
     "https://mystifying-heisenberg-1d575a.netlify.com",
     "https://beatmachine.branchpanic.me",
     "https://tbm.branchpanic.me",
 ]
 
 if os.getenv("BEATFUNC_ALL_ORIGINS"):
-    origins = ["*"]
+    ORIGINS = ["*"]
 
+logger = logging.getLogger("beatfunc")
+app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=ORIGINS,
     allow_credentials=True,
     max_age=300,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
 )
-
 
 def _settings_to_kwargs(settings: dict) -> dict:
     kwargs = {"min_bpm": 60, "max_bpm": 300}
@@ -54,7 +54,15 @@ def _settings_to_kwargs(settings: dict) -> dict:
 
 async def process_song(
     effects: List[bm.effects.base.BaseEffect], filename: str, processing_args: dict
-):
+):  
+    try:
+        metadata = MP3(filename)
+    except MutagenError:
+        raise HTTPException(status_code=http.HTTPStatus.UNPROCESSABLE_ENTITY, detail='Failed to read song metadata')
+
+    if metadata.info.length > MAX_LENGTH:
+        raise HTTPException(status_code=http.HTTPStatus.UNPROCESSABLE_ENTITY, detail=f'Song is too long (max is {MAX_LENGTH} seconds)')
+
     start_time = timeit.default_timer()
     logger.info(f"Starting with settings: {processing_args}")
 
@@ -106,6 +114,7 @@ async def process_song_from_youtube(payload: YoutubeSongPayload):
             }],
             'outtmpl': base_filename + ".mp4",
             'prefer_ffmpeg': True,
+            'quiet': True,
         }) as ydl:
             ydl.download([payload.youtube_url])
     except Exception as e:
