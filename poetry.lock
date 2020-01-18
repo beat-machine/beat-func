@@ -43,7 +43,7 @@ description = "A library for procedurally remixing songs"
 name = "beatmachine"
 optional = false
 python-versions = "==3.*,>=3.6.0"
-version = "2.2.0-alpha.3"
+version = "2.2.0-alpha.4"
 
 [package.dependencies]
 deprecation = ">=2.0.0,<3.0.0"
@@ -324,8 +324,8 @@ category = "main"
 description = "Python 2 and 3 compatibility utilities"
 name = "six"
 optional = false
-python-versions = ">=2.6, !=3.0.*, !=3.1.*"
-version = "1.13.0"
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*"
+version = "1.14.0"
 
 [[package]]
 category = "main"
@@ -404,7 +404,7 @@ python-versions = "*"
 version = "2019.12.25"
 
 [metadata]
-content-hash = "f404998422d0077411ca9aacbb9c8955905db1e34fdbd85a281551f6560b6d19"
+content-hash = "da041ce121f17fb13035fcb9360334d829d11f2a1ba21f5d76938340755b6f9a"
 python-versions = "^3.7"
 
 [metadata.files]
@@ -421,8 +421,8 @@ attrs = [
     {file = "attrs-19.3.0.tar.gz", hash = "sha256:f7b7ce16570fe9965acd6d30101a28f62fb4a7f9e926b3bbc9b61f8b04247e72"},
 ]
 beatmachine = [
-    {file = "beatmachine-2.2.0a3-py3-none-any.whl", hash = "sha256:c65ef09dac887d7e62204824f3ab77b77d94361acb2bc571b17ffd2dec8f5c51"},
-    {file = "beatmachine-2.2.0a3.tar.gz", hash = "sha256:8e272832ab8fcb8ae1b63dfc9c7a2b572c7ca688b737b4b409c54966e7e6fbdf"},
+    {file = "beatmachine-2.2.0a4-py3-none-any.whl", hash = "sha256:379ff82f572048b1acb04cacae4613ad0e78f00f7e6bf8bd2db9b1b49050a0bf"},
+    {file = "beatmachine-2.2.0a4.tar.gz", hash = "sha256:9537c0c756bf3c089c6bb938ba23d5b232d28bbf9026e1cbe54fbb32b462ba25"},
 ]
 black = [
     {file = "black-18.9b0-py36-none-any.whl", hash = "sha256:817243426042db1d36617910df579a54f1afd659adb96fc5032fcf4b36209739"},
@@ -621,8 +621,8 @@ scipy = [
     {file = "scipy-1.4.1.tar.gz", hash = "sha256:dee1bbf3a6c8f73b6b218cb28eed8dd13347ea2f87d572ce19b289d6fd3fbc59"},
 ]
 six = [
-    {file = "six-1.13.0-py2.py3-none-any.whl", hash = "sha256:1f1b7d42e254082a9db6279deae68afb421ceba6158efa6131de7b3003ee93fd"},
-    {file = "six-1.13.0.tar.gz", hash = "sha256:30f610279e8b2578cab6db20741130331735c781b56053c59c4076da27f06b66"},
+    {file = "six-1.14.0-py2.py3-none-any.whl", hash = "sha256:8f3cd2e254d8f793e7f3d6d9df77b92252b52637291d0f0da013c76ea2724b6c"},
+    {file = "six-1.14.0.tar.gz", hash = "sha256:236bdbdce46e6e6a3d61a337c0f8b763ca1e8717c03b369e87a7ec7ce1319c0a"},
 ]
 starlette = [
     {file = "starlette-0.12.9.tar.gz", hash = "sha256:c2ac9a42e0e0328ad20fe444115ac5e3760c1ee2ac1ff8cdb5ec915c4a453411"},
