@@ -109,3 +109,5 @@ venv.bak/
 
 # Residual MP3s
 *.mp3
+
+*.pkl

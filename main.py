@@ -8,8 +8,10 @@ import uuid
 from tempfile import NamedTemporaryFile, mkstemp
 
 import beatmachine as bm
-import ffmpeg
+import cachetools
+import xxhash
 import youtube_dl
+import pickle
 
 from fastapi import FastAPI, Form, File, UploadFile, HTTPException
 from starlette.middleware.cors import CORSMiddleware
@@ -41,6 +43,21 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+class LRUFileCache(cachetools.LRUCache):
+    def popitem(self):
+        k, v = super().popitem()
+        logger.info(f'Cache: evicting {k}')
+        if os.path.isfile(v):
+            os.remove(v)
+
+
+# This just stays in memory since we're running on Google Cloud Run. If the process dies and this is lost, our disk
+# storage is also gone. Trust me, there are a lot of issues with this, but that's why this server is slowly being
+# replaced...
+cache = LRUFileCache(maxsize=8)
+
+
 def _settings_to_kwargs(settings: dict) -> dict:
     kwargs = {"min_bpm": 60, "max_bpm": 300}
 
@@ -53,8 +70,36 @@ def _settings_to_kwargs(settings: dict) -> dict:
     return kwargs
 
 
+def find_or_load_beats(filename: str, loader: bm.beats.loader.BeatLoader) -> bm.Beats:
+    h = xxhash.xxh32()
+    with open(filename, 'rb') as file:
+        block = file.read(512)
+        while block:
+            h.update(block)
+            block = file.read(512)
+    d = h.digest()
+
+    if d in cache:
+        logger.info(f'Cache: hit {d}')
+        try:
+            return pickle.load(open(cache[d], 'rb'))
+        except Exception as e:
+            logger.exception(f'Cache: failed to load {d}, falling through to miss', e)
+
+    logger.info(f'Cache: miss {d}, creating...')
+    beats = bm.Beats.from_song(filename, beat_loader=loader)
+    beat_filename = f'{filename}_beats.pkl'
+
+    with open(beat_filename, 'wb') as fp:
+        pickle.dump(beats, fp)
+
+    cache[d] = beat_filename
+
+    return beats
+
+
 async def process_song(
-    effects: List[bm.effects.base.BaseEffect], filename: str, processing_args: dict
+    effects: List[bm.effects.base.LoadableEffect], filename: str, processing_args: dict
 ):  
     try:
         metadata = MP3(filename)
@@ -71,13 +116,13 @@ async def process_song(
         return bm.loader.load_beats_by_signal(f, **processing_args)
 
     logger.info(f"Splitting and processing song")
-    beats = bm.Beats.from_song(filename, loader=load)
+    beats = find_or_load_beats(filename, load)
 
     for e in effects:
         beats = beats.apply(e)
 
     buf = io.BytesIO()
-    beats.consolidate().export(buf, format="mp3")
+    beats.save(buf, out_format="mp3")
     os.remove(filename)
     elapsed = timeit.default_timer() - start_time
     logger.info(f"Finished in {elapsed}s, streaming result to client")

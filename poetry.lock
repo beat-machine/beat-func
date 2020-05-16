@@ -43,7 +43,7 @@ description = "A library for procedurally remixing songs"
 name = "beatmachine"
 optional = false
 python-versions = "==3.*,>=3.6.0"
-version = "3.0.0"
+version = "3.1.0"
 
 [package.dependencies]
 deprecation = ">=2.0.0,<3.0.0"
@@ -51,7 +51,7 @@ madmom = "*"
 soundfile = ">=0.10.3,<1.0.0"
 
 [package.extras]
-dev = ["black (>=18.3.0.a0,<19.0.0)", "parameterized (>=0.7.1,<1.0.0)", "pre-commit (>=1.20.0,<2.0.0)", "pytest (>=5.3.5,<6.0.0)", "sphinx (>=2.2.0,<3.0.0)"]
+dev = ["black (>=18.3.0.a0,<19.0.0)", "bump2version (>=1.0.0,<2.0.0)", "parameterized (>=0.7.1,<1.0.0)", "pre-commit (>=1.20.0,<2.0.0)", "pytest (>=5.3.5,<6.0.0)", "sphinx (>=2.2.0,<3.0.0)"]
 
 [[package]]
 category = "dev"
@@ -69,6 +69,14 @@ toml = ">=0.9.4"
 
 [package.extras]
 d = ["aiohttp (>=3.3.2)"]
+
+[[package]]
+category = "main"
+description = "Extensible memoizing collections and decorators"
+name = "cachetools"
+optional = false
+python-versions = "~=3.5"
+version = "4.1.0"
 
 [[package]]
 category = "main"
@@ -134,28 +142,6 @@ all = ["requests", "aiofiles", "jinja2", "python-multipart", "itsdangerous", "py
 dev = ["pyjwt", "passlib"]
 doc = ["mkdocs", "mkdocs-material", "markdown-include"]
 test = ["pytest (>=4.0.0)", "pytest-cov", "mypy", "black", "isort", "requests", "email-validator", "sqlalchemy", "databases", "orjson", "async-exit-stack", "async-generator"]
-
-[[package]]
-category = "main"
-description = "Python bindings for FFmpeg - with complex filtering support"
-name = "ffmpeg-python"
-optional = false
-python-versions = "*"
-version = "0.2.0"
-
-[package.dependencies]
-future = "*"
-
-[package.extras]
-dev = ["future (0.17.1)", "numpy (1.16.4)", "pytest-mock (1.10.4)", "pytest (4.6.1)", "Sphinx (2.1.0)", "tox (3.12.1)"]
-
-[[package]]
-category = "main"
-description = "Clean single-source support for Python 3 and 2"
-name = "future"
-optional = false
-python-versions = ">=2.6, !=3.0.*, !=3.1.*, !=3.2.*"
-version = "0.18.2"
 
 [[package]]
 category = "main"
@@ -439,7 +425,7 @@ python-versions = "*"
 version = "2020.5.8"
 
 [metadata]
-content-hash = "16ab52f5f51d3fac69379d2079d1fa7c200d9009ae32774aad7a4390e636de35"
+content-hash = "142b13697206ad700d9fd5fcc5dddb6409751db3c871a7c1045ed15337ed429b"
 python-versions = "^3.7"
 
 [metadata.files]
@@ -456,12 +442,16 @@ attrs = [
     {file = "attrs-19.3.0.tar.gz", hash = "sha256:f7b7ce16570fe9965acd6d30101a28f62fb4a7f9e926b3bbc9b61f8b04247e72"},
 ]
 beatmachine = [
-    {file = "beatmachine-3.0.0-py3-none-any.whl", hash = "sha256:a0ef0114b2b4f6badc093fe2e14c37c762f74a5b3ef8cb36a89b1c13eeef8c42"},
-    {file = "beatmachine-3.0.0.tar.gz", hash = "sha256:8a3da8bad25d52de150df7d894fc5919b4c1b84571e5b48885f4794c6debc062"},
+    {file = "beatmachine-3.1.0-py3-none-any.whl", hash = "sha256:d6b8eee0c494896593b2570a88874ae907f77bedb4a9ab9d0ae30c86f2244c90"},
+    {file = "beatmachine-3.1.0.tar.gz", hash = "sha256:8571c81c7a84c881021a15a49e3dbe97418cb30a44323478a239c78270210019"},
 ]
 black = [
     {file = "black-18.9b0-py36-none-any.whl", hash = "sha256:817243426042db1d36617910df579a54f1afd659adb96fc5032fcf4b36209739"},
     {file = "black-18.9b0.tar.gz", hash = "sha256:e030a9a28f542debc08acceb273f228ac422798e5215ba2a791a6ddeaaca22a5"},
+]
+cachetools = [
+    {file = "cachetools-4.1.0-py3-none-any.whl", hash = "sha256:de5d88f87781602201cde465d3afe837546663b168e8b39df67411b0bf10cefc"},
+    {file = "cachetools-4.1.0.tar.gz", hash = "sha256:1d057645db16ca7fe1f3bd953558897603d6f0b9c51ed9d11eb4d071ec4e2aab"},
 ]
 cffi = [
     {file = "cffi-1.14.0-cp27-cp27m-macosx_10_9_x86_64.whl", hash = "sha256:1cae98a7054b5c9391eb3249b86e0e99ab1e02bb0cc0575da191aedadbdf4384"},
@@ -543,13 +533,6 @@ deprecation = [
 fastapi = [
     {file = "fastapi-0.44.1-py3-none-any.whl", hash = "sha256:04afe17ceaaa6c07a0377c2d2cafde864672f0489b5be21030e3d6ca2e47b0ac"},
     {file = "fastapi-0.44.1.tar.gz", hash = "sha256:5e053824ffbdd7041812f4c77e6def17a557edc12f4fb061e00d7ee9a03aca3b"},
-]
-ffmpeg-python = [
-    {file = "ffmpeg-python-0.2.0.tar.gz", hash = "sha256:65225db34627c578ef0e11c8b1eb528bb35e024752f6f10b78c011f6f64c4127"},
-    {file = "ffmpeg_python-0.2.0-py3-none-any.whl", hash = "sha256:ac441a0404e053f8b6a1113a77c0f452f1cfc62f6344a769475ffdc0f56c23c5"},
-]
-future = [
-    {file = "future-0.18.2.tar.gz", hash = "sha256:b1bead90b70cf6ec3f0710ae53a525360fa360d306a86583adc6bf83a4db537d"},
 ]
 h11 = [
     {file = "h11-0.9.0-py2.py3-none-any.whl", hash = "sha256:4bc6d6a1238b7615b266ada57e0618568066f57dd6fa967d1290ec9309b2f2f1"},
