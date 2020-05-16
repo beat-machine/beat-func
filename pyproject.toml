@@ -7,13 +7,14 @@ license = "MPL-2.0"
 
 [tool.poetry.dependencies]
 python = "^3.7"
-beatmachine = "2.2.0-alpha.4"
+beatmachine = "3.1.0"
 fastapi = "^0.44.0"
 uvicorn = "^0.10.8"
 python-multipart = "^0.0.5"
-ffmpeg-python = "^0.2.0"
 youtube_dl = "^2020.1.24"
 mutagen = "^1.43.0"
+xxhash = "^1.4.3"
+cachetools = "^4.1.0"
 
 [tool.poetry.dev-dependencies]
 rope = "^0.14.0"
