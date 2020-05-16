@@ -4,7 +4,7 @@ description = "A small Python module for determining appropriate platform-specif
 name = "appdirs"
 optional = false
 python-versions = "*"
-version = "1.4.3"
+version = "1.4.4"
 
 [[package]]
 category = "dev"
@@ -43,7 +43,7 @@ description = "A library for procedurally remixing songs"
 name = "beatmachine"
 optional = false
 python-versions = "==3.*,>=3.6.0"
-version = "3.1.0"
+version = "3.1.1"
 
 [package.dependencies]
 deprecation = ">=2.0.0,<3.0.0"
@@ -357,7 +357,7 @@ description = "Python Library for Tom's Obvious, Minimal Language"
 name = "toml"
 optional = false
 python-versions = "*"
-version = "0.10.0"
+version = "0.10.1"
 
 [[package]]
 category = "dev"
@@ -425,13 +425,13 @@ python-versions = "*"
 version = "2020.5.8"
 
 [metadata]
-content-hash = "142b13697206ad700d9fd5fcc5dddb6409751db3c871a7c1045ed15337ed429b"
+content-hash = "a38504f43fb9e4119c3eff7056b64c04502451c480a029758a63dca83f40db57"
 python-versions = "^3.7"
 
 [metadata.files]
 appdirs = [
-    {file = "appdirs-1.4.3-py2.py3-none-any.whl", hash = "sha256:d8b24664561d0d34ddfaec54636d502d7cea6e29c3eaf68f3df6180863e2166e"},
-    {file = "appdirs-1.4.3.tar.gz", hash = "sha256:9e5896d1372858f8dd3344faf4e5014d21849c756c8d5701f78f8a103b372d92"},
+    {file = "appdirs-1.4.4-py2.py3-none-any.whl", hash = "sha256:a841dacd6b99318a741b166adb07e19ee71a274450e68237b4650ca1055ab128"},
+    {file = "appdirs-1.4.4.tar.gz", hash = "sha256:7d5d0167b2b1ba821647616af46a749d1c653740dd0d2415100fe26e27afdf41"},
 ]
 astroid = [
     {file = "astroid-2.4.1-py3-none-any.whl", hash = "sha256:d8506842a3faf734b81599c8b98dcc423de863adcc1999248480b18bd31a0f38"},
@@ -442,8 +442,8 @@ attrs = [
     {file = "attrs-19.3.0.tar.gz", hash = "sha256:f7b7ce16570fe9965acd6d30101a28f62fb4a7f9e926b3bbc9b61f8b04247e72"},
 ]
 beatmachine = [
-    {file = "beatmachine-3.1.0-py3-none-any.whl", hash = "sha256:d6b8eee0c494896593b2570a88874ae907f77bedb4a9ab9d0ae30c86f2244c90"},
-    {file = "beatmachine-3.1.0.tar.gz", hash = "sha256:8571c81c7a84c881021a15a49e3dbe97418cb30a44323478a239c78270210019"},
+    {file = "beatmachine-3.1.1-py3-none-any.whl", hash = "sha256:281cb8b3a3abc0a8a50d0069ee789669b5a6ed952b19b43453b6e02bfd024401"},
+    {file = "beatmachine-3.1.1.tar.gz", hash = "sha256:b8134d9c486963ed5eeffe2de43a5e8c09b07cbaea28f30c2d09e28ae75ce4db"},
 ]
 black = [
     {file = "black-18.9b0-py36-none-any.whl", hash = "sha256:817243426042db1d36617910df579a54f1afd659adb96fc5032fcf4b36209739"},
@@ -687,9 +687,8 @@ starlette = [
     {file = "starlette-0.12.9.tar.gz", hash = "sha256:c2ac9a42e0e0328ad20fe444115ac5e3760c1ee2ac1ff8cdb5ec915c4a453411"},
 ]
 toml = [
-    {file = "toml-0.10.0-py2.7.egg", hash = "sha256:f1db651f9657708513243e61e6cc67d101a39bad662eaa9b5546f789338e07a3"},
-    {file = "toml-0.10.0-py2.py3-none-any.whl", hash = "sha256:235682dd292d5899d361a811df37e04a8828a5b1da3115886b73cf81ebc9100e"},
-    {file = "toml-0.10.0.tar.gz", hash = "sha256:229f81c57791a41d65e399fc06bf0848bab550a9dfd5ed66df18ce5f05e73d5c"},
+    {file = "toml-0.10.1-py2.py3-none-any.whl", hash = "sha256:bda89d5935c2eac546d648028b9901107a595863cb36bae0c73ac804a9b4ce88"},
+    {file = "toml-0.10.1.tar.gz", hash = "sha256:926b612be1e5ce0634a2ca03470f95169cf16f939018233a670519cb4ac58b0f"},
 ]
 typed-ast = [
     {file = "typed_ast-1.4.1-cp35-cp35m-manylinux1_i686.whl", hash = "sha256:73d785a950fc82dd2a25897d525d003f6378d1cb23ab305578394694202a58c3"},
