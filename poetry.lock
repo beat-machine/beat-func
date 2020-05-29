@@ -43,7 +43,7 @@ description = "A library for procedurally remixing songs"
 name = "beatmachine"
 optional = false
 python-versions = "==3.*,>=3.6.0"
-version = "3.1.4"
+version = "3.1.5"
 
 [package.dependencies]
 deprecation = ">=2.0.0,<3.0.0"
@@ -442,8 +442,8 @@ attrs = [
     {file = "attrs-19.3.0.tar.gz", hash = "sha256:f7b7ce16570fe9965acd6d30101a28f62fb4a7f9e926b3bbc9b61f8b04247e72"},
 ]
 beatmachine = [
-    {file = "beatmachine-3.1.2-py3-none-any.whl", hash = "sha256:7ace73605979830ba1426816f6c3cd9576e9b02f1471f640c52c93f7e305640c"},
-    {file = "beatmachine-3.1.2.tar.gz", hash = "sha256:e08e22917fcc291f081b472de5344b5695ca92bf669f3d2bade818bdb797bf33"},
+    {file = "beatmachine-3.1.5-py3-none-any.whl", hash = "sha256:2553be57e9deecf84a80df8f40afdaeeb1f7faf8ca0aeff1f0a2d3d0b50a8cb1"},
+    {file = "beatmachine-3.1.5.tar.gz", hash = "sha256:638ef7327d26776d9599a9089a7d0be48f4dbc03367b64b52ff6ae5d0c1f9b69"},
 ]
 black = [
     {file = "black-18.9b0-py36-none-any.whl", hash = "sha256:817243426042db1d36617910df579a54f1afd659adb96fc5032fcf4b36209739"},
