@@ -1,39 +1,38 @@
-import http
 import io
-import json
-import logging
+import ujson as json
 import os
-import timeit
 import uuid
+
 from tempfile import NamedTemporaryFile, mkstemp
 
 import beatmachine as bm
-import cachetools
-import xxhash
-import youtube_dl
-import pickle
 
 from fastapi import FastAPI, Form, File, UploadFile, HTTPException
 from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import StreamingResponse, JSONResponse
-from typing import List
-from pydantic import BaseModel
-from mutagen.mp3 import MP3, MutagenError
 
-MAX_LENGTH = 60 * 6 + 30
+from typing import Any, List, Optional, IO
 
-ORIGINS = [
-    "https://mystifying-heisenberg-1d575a.netlify.com",
-    "https://beatmachine.branchpanic.me",
-    "https://tbm.branchpanic.me",
-]
+from mutagen.mp3 import MP3
+from mutagen import MutagenError
 
-if os.getenv("BEATFUNC_ALL_ORIGINS"):
-    ORIGINS = ["*"]
+from pydantic import BaseModel, conlist, conint, validator, ValidationError
 
-logger = logging.getLogger("beatfunc")
+import logging
+import cachetools
+import xxhash
+import pickle
+
+MAX_LENGTH = int(os.getenv("BEATFUNC_MAX_LENGTH"))
+ORIGINS = os.getenv("BEATFUNC_ORIGINS").split(";")
+ALLOW_YT = bool(int(os.getenv("BEATFUNC_ALLOW_YT")))
+
+if ALLOW_YT:
+    import youtube_dl
+
+logger = logging.getLogger(__name__)
+
 app = FastAPI()
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ORIGINS,
@@ -43,80 +42,89 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+EffectList = List[bm.effects.base.LoadableEffect]
+
 
 class LRUFileCache(cachetools.LRUCache):
     def popitem(self):
         k, v = super().popitem()
-        logger.info(f'Cache: evicting {k}')
+        logger.info(f"Cache: evicting {k}")
         if os.path.isfile(v):
             os.remove(v)
 
 
-# This just stays in memory since we're running on Google Cloud Run. If the process dies and this is lost, our disk
-# storage is also gone. Trust me, there are a lot of issues with this, but that's why this server is slowly being
-# replaced...
-cache = LRUFileCache(maxsize=8)
+# We keep the hash -> filename cache in memory because when our process dies, the container (and thus cached files) go
+# with it
+song_cache = LRUFileCache(maxsize=8)
 
 
-def _settings_to_kwargs(settings: dict) -> dict:
-    kwargs = {"min_bpm": 60, "max_bpm": 300}
+class SettingsSchema(BaseModel):
+    suggested_bpm: Optional[conint(gt=60, lt=300)] = None
+    drift: Optional[conint(ge=0, lt=200)] = 15
 
-    if "suggested_bpm" in settings:
-        suggested_bpm = settings["suggested_bpm"]
-        drift = settings.pop("drift", 15)
-        kwargs["min_bpm"] = suggested_bpm - drift
-        kwargs["max_bpm"] = suggested_bpm + drift
+    @property
+    def max_bpm(self) -> int:
+        if self.suggested_bpm is not None:
+            return self.suggested_bpm + self.drift
+        else:
+            return 300
 
-    return kwargs
+    @property
+    def min_bpm(self) -> int:
+        if self.suggested_bpm is not None:
+            return self.suggested_bpm - self.drift
+        else:
+            return 60
 
 
 def find_or_load_beats(filename: str, loader: bm.beats.loader.BeatLoader) -> bm.Beats:
     h = xxhash.xxh32()
-    with open(filename, 'rb') as file:
+    with open(filename, "rb") as file:
         block = file.read(512)
         while block:
             h.update(block)
             block = file.read(512)
     d = h.digest()
 
-    if d in cache:
-        logger.info(f'Cache: hit {d}')
+    if d in song_cache:
+        logger.info(f"Cache: hit {d}")
         try:
-            return pickle.load(open(cache[d], 'rb'))
+            return pickle.load(open(song_cache[d], "rb"))
         except Exception as e:
-            logger.exception(f'Cache: failed to load {d}, falling through to miss', e)
+            logger.exception(f"Cache: failed to load {d}, falling through to miss", e)
 
-    logger.info(f'Cache: miss {d}, creating...')
+    logger.info(f"Cache: miss {d}, creating...")
     beats = bm.Beats.from_song(filename, beat_loader=loader)
-    beat_filename = f'{filename}_beats.pkl'
+    beat_filename = f"{filename}_beats.pkl"
 
-    with open(beat_filename, 'wb') as fp:
+    with open(beat_filename, "wb") as fp:
+        logger.info(f"Cache: creating entry {d} at {beat_filename}")
         pickle.dump(beats, fp)
 
-    cache[d] = beat_filename
+    song_cache[d] = beat_filename
 
     return beats
 
 
 async def process_song(
-    effects: List[bm.effects.base.LoadableEffect], filename: str, processing_args: dict
-):  
+    effects: EffectList, filename: str, settings: SettingsSchema
+) -> IO[bytes]:
     try:
         metadata = MP3(filename)
-    except MutagenError:
-        raise HTTPException(status_code=http.HTTPStatus.UNPROCESSABLE_ENTITY, detail='Failed to read song metadata')
+    except MutagenError as e:
+        logger.exception(e)
+        raise HTTPException(422, detail="Failed to parse song metadata")
 
     if metadata.info.length > MAX_LENGTH:
-        raise HTTPException(status_code=http.HTTPStatus.UNPROCESSABLE_ENTITY, detail=f'Song is too long (max is {MAX_LENGTH} seconds)')
-
-    start_time = timeit.default_timer()
-    logger.info(f"Starting with settings: {processing_args}")
+        logger.exception(e)
+        raise HTTPException(413, detail="Song exceeded maximum length in seconds")
 
     def load(f):
-        return bm.loader.load_beats_by_signal(f, **processing_args)
+        return bm.loader.load_beats_by_signal(
+            f, min_bpm=settings.min_bpm, max_bpm=settings.max_bpm
+        )
 
-    logger.info(f"Splitting and processing song")
-    beats = find_or_load_beats(filename, load)
+    beats = find_or_load_beats(filename, loader=load)
 
     for e in effects:
         beats = beats.apply(e)
@@ -124,100 +132,75 @@ async def process_song(
     buf = io.BytesIO()
     beats.save(buf, out_format="mp3")
     os.remove(filename)
-    elapsed = timeit.default_timer() - start_time
-    logger.info(f"Finished in {elapsed}s, streaming result to client")
     buf.seek(0)
 
-    return StreamingResponse(buf, media_type="audio/mpeg")
+    return buf
 
 
-class YoutubeSongPayload(BaseModel):
-    youtube_url: str
-    effects: List[dict]
-    settings: dict
+class JobSchema(BaseModel):
+    settings: Optional[SettingsSchema] = SettingsSchema()
+    effects: conlist(Any, min_items=1, max_items=5)
 
-
-@app.post("/yt")
-async def process_song_from_youtube(payload: YoutubeSongPayload):
-    try:
-        effects = [bm.effects.load_from_dict(e) for e in payload.effects]
-    except TypeError as e:
-        logger.error(f"Invalid effect data: {e}")
-        raise HTTPException(
-            detail="Invalid effect data", status_code=http.HTTPStatus.BAD_REQUEST
-        )
-
-    logger.info("Downloading file")
-
-    try:
-        base_filename = str(uuid.uuid4())
-        with youtube_dl.YoutubeDL({
-            'format': 'bestaudio/best',
-            'postprocessors': [{
-                'key': 'FFmpegExtractAudio',
-                'preferredcodec': 'mp3',
-                'preferredquality': '192',
-            }],
-            'outtmpl': base_filename + ".mp4",
-            'prefer_ffmpeg': True,
-            'quiet': True,
-        }) as ydl:
-            ydl.download([payload.youtube_url])
-    except Exception as e:
-        logger.error(e)
-        raise HTTPException(
-            detail="Failed to download video", status_code=http.HTTPStatus.BAD_REQUEST
-        )
-
-    return await process_song(
-        effects, base_filename + ".mp3", _settings_to_kwargs(payload.settings)
-    )
+    @validator("effects", each_item=True)
+    def instantiate_effects(cls, v):
+        try:
+            return bm.effects.load_from_dict(v)
+        except ValueError as e:
+            raise ValidationError("Failed to load effects", e)
 
 
 @app.post("/")
-async def process_song_from_file(
+async def handle_file_job(
     effects: str = Form(default=None), song: UploadFile = File(default=None)
 ):
-    logger.info("Received song data")
     try:
-        effect_data = json.loads(effects)
-        settings = {}
-
-        if isinstance(effect_data, dict):
-            settings = effect_data.pop("settings", {})
-            effect_data = effect_data["effects"]
-
-        try:
-            effects = [bm.effects.load_from_dict(e) for e in effect_data]
-        except TypeError as e:
-            logger.error(f"Invalid effect data: {e}")
-            raise HTTPException(
-                detail="Invalid effect data", status_code=http.HTTPStatus.BAD_REQUEST
-            )
-    except KeyError as e:
-        logger.error(f"KeyError when parsing JSON, assuming missing data: {e}")
-        raise HTTPException(
-            detail="Missing effects", status_code=http.HTTPStatus.BAD_REQUEST
-        )
-    except ValueError as e:
-        logger.error(f"ValueError when parsing JSON, assuming malformed data: {e}")
-        raise HTTPException(
-            detail="Invalid effects", status_code=http.HTTPStatus.BAD_REQUEST
-        )
-
-    if len(effects) > 5:
-        raise HTTPException(
-            detail="Too many effects (max is 5)",
-            status_code=http.HTTPStatus.BAD_REQUEST,
-        )
-    if len(effects) < 1:
-        raise HTTPException(
-            detail="Not enough effects (min is 1)",
-            status_code=http.HTTPStatus.BAD_REQUEST,
-        )
+        job = JobSchema.parse_raw(effects)
+    except ValidationError as e:
+        logger.exception(e)
+        raise HTTPException(detail=e.json(), status_code=422)
 
     with NamedTemporaryFile(suffix=".mp3", delete=False) as fp:
         fp.write(await song.read())
         filename = fp.name
 
-    return await process_song(effects, filename, _settings_to_kwargs(settings))
+    return StreamingResponse(
+        await process_song(job.effects, filename, job.settings), media_type="audio/mpeg"
+    )
+
+
+class UrlJobSchema(JobSchema):
+    url: str
+
+
+@app.post("/yt")
+async def handle_url_job(job: UrlJobSchema):
+    if not ALLOW_YT:
+        raise HTTPException(
+            detail="YouTube downloads are disabled on this instance", status_code=404
+        )
+
+    try:
+        base_filename = str(uuid.uuid4())
+        with youtube_dl.YoutubeDL(
+            {
+                "format": "bestaudio/best",
+                "postprocessors": [
+                    {
+                        "key": "FFmpegExtractAudio",
+                        "preferredcodec": "mp3",
+                        "preferredquality": "192",
+                    }
+                ],
+                "outtmpl": base_filename + ".mp4",
+                "prefer_ffmpeg": True,
+                "quiet": True,
+            }
+        ) as ydl:
+            ydl.download([job.url])
+    except Exception:
+        raise HTTPException(detail="Failed to download video", status_code=400)
+
+    return StreamingResponse(
+        await process_song(job.effects, base_filename + ".mp3", job.settings),
+        media_type="audio/mpeg",
+    )

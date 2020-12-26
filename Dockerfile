@@ -3,6 +3,10 @@ FROM python:3.7.5-slim
 ENV APP_HOME /srv
 ENV PORT 80
 
+ENV BEATFUNC_ORIGINS https://mystifying-heisenberg-1d575a.netlify.com;https://beatmachine.branchpanic.me
+ENV BEATFUNC_MAX_LENGTH 390
+ENV BEATFUNC_ALLOW_YT 0
+
 WORKDIR ${APP_HOME}
 COPY . .
 
