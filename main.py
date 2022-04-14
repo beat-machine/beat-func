@@ -1,20 +1,16 @@
 import io
-import ujson as json
 import os
 import uuid
 
-from tempfile import NamedTemporaryFile, mkstemp
+from tempfile import NamedTemporaryFile
 
 import beatmachine as bm
 
 from fastapi import FastAPI, Form, File, UploadFile, HTTPException
 from starlette.middleware.cors import CORSMiddleware
-from starlette.responses import StreamingResponse, JSONResponse
+from starlette.responses import StreamingResponse
 
 from typing import Any, List, Optional, IO
-
-from mutagen.mp3 import MP3
-from mutagen import MutagenError
 
 from pydantic import BaseModel, conlist, conint, validator, ValidationError
 
@@ -23,12 +19,12 @@ import cachetools
 import xxhash
 import pickle
 
-MAX_LENGTH = int(os.getenv("BEATFUNC_MAX_LENGTH"))
-ORIGINS = os.getenv("BEATFUNC_ORIGINS").split(";")
-ALLOW_YT = bool(int(os.getenv("BEATFUNC_ALLOW_YT")))
+MAX_FILE_SIZE = int(os.getenv("BEATFUNC_MAX_FILE_SIZE") or 8000000)
+ORIGINS = (os.getenv("BEATFUNC_ORIGINS") or "*").split(";")
+ALLOW_YT = bool(int(os.getenv("BEATFUNC_ALLOW_YT") or 1))
 
 if ALLOW_YT:
-    import youtube_dl
+    import yt_dlp
 
 logger = logging.getLogger(__name__)
 
@@ -109,15 +105,8 @@ def find_or_load_beats(filename: str, loader: bm.beats.loader.BeatLoader) -> bm.
 async def process_song(
     effects: EffectList, filename: str, settings: SettingsSchema
 ) -> IO[bytes]:
-    try:
-        metadata = MP3(filename)
-    except MutagenError as e:
-        logger.exception(e)
-        raise HTTPException(422, detail="Failed to parse song metadata")
-
-    if metadata.info.length > MAX_LENGTH:
-        logger.exception(e)
-        raise HTTPException(413, detail="Song exceeded maximum length in seconds")
+    if os.path.getsize(filename) > MAX_FILE_SIZE:
+        raise HTTPException(status_code=413, detail="File too large")
 
     def load(f):
         return bm.loader.load_beats_by_signal(
@@ -181,7 +170,7 @@ async def handle_url_job(job: UrlJobSchema):
 
     try:
         base_filename = str(uuid.uuid4())
-        with youtube_dl.YoutubeDL(
+        with yt_dlp.YoutubeDL(
             {
                 "format": "bestaudio/best",
                 "postprocessors": [
