@@ -12,7 +12,7 @@ COPY . .
 
 RUN set -x && \
     apt-get update && \
-    apt-get install -y libopenblas-dev portaudio19-dev fftw-dev ffmpeg git
+    apt-get install -y libopenblas-dev portaudio19-dev fftw-dev ffmpeg git build-essential
 
 RUN set -x && \
     pip install -e git+https://github.com/CPJKU/madmom#egg=madmom && \
