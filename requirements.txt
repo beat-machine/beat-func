@@ -32,8 +32,8 @@ six==1.16.0
 sniffio==1.2.0
 SoundFile==0.10.3.post1
 starlette==0.17.1
-typing-extensions==4.1.1
+typing_extensions==4.1.1
 uvicorn==0.17.6
 websockets==10.2
 xxhash==3.0.0
-yt-dlp==2022.4.8
+yt-dlp==2022.9.1
