@@ -1,4 +1,4 @@
-FROM python:3.10-slim
+FROM python:3.11-slim
 
 ENV APP_HOME /srv
 ENV PORT 80
@@ -12,10 +12,11 @@ COPY . .
 
 RUN set -x && \
     apt-get update && \
-    apt-get install -y libopenblas-dev portaudio19-dev fftw-dev ffmpeg git build-essential
+    apt-get install -y libopenblas-dev portaudio19-dev fftw-dev ffmpeg git build-essential curl
 
 RUN set -x && \
-    pip install -e git+https://github.com/CPJKU/madmom#egg=madmom && \
-    pip install -r requirements.txt
+    curl -sSL https://install.python-poetry.org | python3 - && \
+    /root/.local/bin/poetry config virtualenvs.create false && \
+    /root/.local/bin/poetry install --only main --no-cache --no-root --no-interaction --no-ansi
 
 CMD uvicorn --host 0.0.0.0 --port ${PORT} main:app

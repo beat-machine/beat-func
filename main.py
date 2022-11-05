@@ -1,23 +1,20 @@
 import io
+import logging
 import os
+import pickle
 import uuid
-
+import json
 from tempfile import NamedTemporaryFile
+from typing import IO, Any, List, Optional
 
 import beatmachine as bm
-
-from fastapi import FastAPI, Form, File, UploadFile, HTTPException
-from starlette.middleware.cors import CORSMiddleware
-from starlette.responses import StreamingResponse
-
-from typing import Any, List, Optional, IO
-
-from pydantic import BaseModel, conlist, conint, validator, ValidationError
-
-import logging
 import cachetools
 import xxhash
-import pickle
+from beatmachine.effect_registry import Effect, EffectRegistry
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from pydantic import BaseModel, ValidationError, conint, conlist, validator
+from starlette.middleware.cors import CORSMiddleware
+from starlette.responses import StreamingResponse
 
 MAX_FILE_SIZE = int(os.getenv("BEATFUNC_MAX_FILE_SIZE") or 8000000)
 ORIGINS = (os.getenv("BEATFUNC_ORIGINS") or "*").split(";")
@@ -37,8 +34,6 @@ app.add_middleware(
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
 )
-
-EffectList = List[bm.effects.base.LoadableEffect]
 
 
 class LRUFileCache(cachetools.LRUCache):
@@ -83,18 +78,18 @@ def find_or_load_beats(filename: str, loader: bm.beats.loader.BeatLoader) -> bm.
     d = h.digest()
 
     if d in song_cache:
-        logger.info(f"Cache: hit {d}")
+        logger.info(f"Using cached beats for song with hash {d}")
         try:
             return pickle.load(open(song_cache[d], "rb"))
-        except Exception as e:
-            logger.exception(f"Cache: failed to load {d}, falling through to miss", e)
+        except:
+            logger.error('Exception occurred while loading cached beats. Regenerating', exc_info=True)
 
-    logger.info(f"Cache: miss {d}, creating...")
+    logger.info(f"Locating beats for song with hash {d}")
     beats = bm.Beats.from_song(filename, beat_loader=loader)
     beat_filename = f"{filename}_beats.pkl"
 
     with open(beat_filename, "wb") as fp:
-        logger.info(f"Cache: creating entry {d} at {beat_filename}")
+        logger.info(f"Cached beats for song with hash {d} at {beat_filename}")
         pickle.dump(beats, fp)
 
     song_cache[d] = beat_filename
@@ -102,21 +97,46 @@ def find_or_load_beats(filename: str, loader: bm.beats.loader.BeatLoader) -> bm.
     return beats
 
 
-async def process_song(
-    effects: EffectList, filename: str, settings: SettingsSchema
-) -> IO[bytes]:
+async def process_song(effects: List[Effect], filename: str, settings: SettingsSchema) -> IO[bytes]:
     if os.path.getsize(filename) > MAX_FILE_SIZE:
         raise HTTPException(status_code=413, detail="File too large")
 
     def load(f):
-        return bm.loader.load_beats_by_signal(
-            f, min_bpm=settings.min_bpm, max_bpm=settings.max_bpm
+        return bm.loader.load_beats_by_signal(f, min_bpm=settings.min_bpm, max_bpm=settings.max_bpm)
+
+    try:
+        beats = find_or_load_beats(filename, loader=load)
+    except Exception as e:
+        logger.error(
+            "An exception occurred while locating beats\n"
+            f"  Settings: {settings}\n",
+            exc_info=True
+        )
+        raise HTTPException(detail="Failed to locate beats", status_code=500) from e
+
+    try:
+        e = None  # so the name is always available in the exception handler below. kinda weird but whatever
+        for e in effects:
+            beats = beats.apply(e)
+            raise Exception('x')
+    except:
+        effect_name = '<unknown effect>'
+
+        if not e:
+            effect_name = '<no effect>'
+        elif hasattr(e, '__effect_name__'):
+            effect_name = e.__effect_name__
+
+        effect_infos = ', '.join([f'{e2} {e2.__dict__}' for e2 in effects])
+        logger.error(
+            "An exception occurred while applying an effect\n"
+            f"  Settings: {settings}\n"
+            f"  Effect ({effect_name}): {e} {e.__dict__}\n"
+            f"  All effects: {effect_infos}\n",
+            exc_info=True
         )
 
-    beats = find_or_load_beats(filename, loader=load)
-
-    for e in effects:
-        beats = beats.apply(e)
+        raise HTTPException(detail=f"Failed to apply effect", status_code=500)
 
     buf = io.BytesIO()
     beats.save(buf, out_format="mp3")
@@ -133,15 +153,13 @@ class JobSchema(BaseModel):
     @validator("effects", each_item=True)
     def instantiate_effects(cls, v):
         try:
-            return bm.effects.load_from_dict(v)
+            return EffectRegistry.load_effect(v)
         except ValueError as e:
             raise ValidationError("Failed to load effects", e)
 
 
 @app.post("/")
-async def handle_file_job(
-    effects: str = Form(default=None), song: UploadFile = File(default=None)
-):
+async def handle_file_job(effects: str = Form(default=None), song: UploadFile = File(default=None)):
     try:
         job = JobSchema.parse_raw(effects)
     except ValidationError as e:
@@ -152,9 +170,7 @@ async def handle_file_job(
         fp.write(await song.read())
         filename = fp.name
 
-    return StreamingResponse(
-        await process_song(job.effects, filename, job.settings), media_type="audio/mpeg"
-    )
+    return StreamingResponse(await process_song(job.effects, filename, job.settings), media_type="audio/mpeg")
 
 
 class UrlJobSchema(JobSchema):
@@ -164,9 +180,7 @@ class UrlJobSchema(JobSchema):
 @app.post("/yt")
 async def handle_url_job(job: UrlJobSchema):
     if not ALLOW_YT:
-        raise HTTPException(
-            detail="YouTube downloads are disabled on this instance", status_code=404
-        )
+        raise HTTPException(detail="YouTube downloads are disabled on this instance", status_code=404)
 
     try:
         base_filename = str(uuid.uuid4())
