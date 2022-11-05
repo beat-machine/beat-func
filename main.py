@@ -118,7 +118,6 @@ async def process_song(effects: List[Effect], filename: str, settings: SettingsS
         e = None  # so the name is always available in the exception handler below. kinda weird but whatever
         for e in effects:
             beats = beats.apply(e)
-            raise Exception('x')
     except:
         effect_name = '<unknown effect>'
 
