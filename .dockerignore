@@ -9,4 +9,9 @@ __pycache__
 .idea/
 .vscode/
 
+tests/
+cache/
+download/
+*.mp3
+*.beat
 *.pkl
