@@ -42,7 +42,8 @@ def _load_beats_cached(audio_file: Path, loader: BeatLoader) -> Beats:
 
 
 def download_song(url: str) -> Path:
-    audio_file = config.DOWNLOAD_PATH / uuid.uuid4().hex
+    audio_file = (config.DOWNLOAD_PATH / uuid.uuid4().hex).with_suffix('.mp3')
+
     with yt_dlp.YoutubeDL(
         {
             "format": "bestaudio/best",
@@ -53,7 +54,7 @@ def download_song(url: str) -> Path:
                     "preferredquality": "192",
                 }
             ],
-            "outtmpl": audio_file.with_suffix(".mp3"),
+            "outtmpl": str(audio_file.with_suffix(".mp4")),
             "prefer_ffmpeg": True,
             "quiet": True,
         }
