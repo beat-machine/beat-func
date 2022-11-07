@@ -113,3 +113,6 @@ download/
 *.mp3
 *.beat
 *.pkl
+
+# Keep local test files
+!tests/*.mp3
