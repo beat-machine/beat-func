@@ -107,7 +107,9 @@ venv.bak/
 .vscode/
 .idea/
 
-# Residual MP3s
+# Files created from local runs
+cache/
+download/
 *.mp3
-
+*.beat
 *.pkl
