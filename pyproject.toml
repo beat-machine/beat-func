@@ -34,8 +34,7 @@ profile = "black"
 
 [tool.pytest.ini_options]
 filterwarnings = [
-    "error",
-    "ignore::DeprecationWarning:madmom.features.onsets"
+    "ignore::DeprecationWarning:madmom"
 ]
 
 [build-system]
