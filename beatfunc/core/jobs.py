@@ -42,7 +42,7 @@ def _load_beats_cached(audio_file: Path, loader: BeatLoader) -> Beats:
 
 
 def download_song(url: str) -> Path:
-    audio_file = (config.DOWNLOAD_PATH / uuid.uuid4().hex).with_suffix('.mp3')
+    audio_file = (config.DOWNLOAD_PATH / uuid.uuid4().hex).with_suffix(".mp3")
 
     with yt_dlp.YoutubeDL(
         {
