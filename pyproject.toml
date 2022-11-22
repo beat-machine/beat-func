@@ -5,7 +5,7 @@ description = "Backend for beat-webapp"
 authors = ["branchpanic <hi@branchpanic.me>"]
 license = "MIT"
 readme = "README.md"
-packages = [{include = "beat_func"}]
+packages = [{include = "beatfunc"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"
