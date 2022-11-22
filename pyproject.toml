@@ -9,7 +9,7 @@ packages = [{include = "beatfunc"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-beatmachine = {git = "https://github.com/beat-machine/beat-machine.git", rev = "e0e45bb7172f80ac51facf65cad05e51f20de6a6"}
+beatmachine = {git = "https://github.com/beat-machine/beat-machine.git", rev = "020525111adc161598478c1557100d56785b66a3"}
 yt-dlp = "^2022.10.4"
 fastapi = "^0.86.0"
 uvicorn = "^0.19.0"

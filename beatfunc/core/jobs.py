@@ -10,7 +10,8 @@ from pathlib import Path
 import yt_dlp
 from beatmachine import Beats
 from beatmachine.effect_registry import Effect
-from beatmachine.loader import BeatLoader, load_beats_by_signal
+from beatmachine.backend import Backend
+from beatmachine.backends.madmom import MadmomDbnBackend
 
 from . import config
 from . import exceptions as exc
@@ -19,7 +20,7 @@ logger = logging.getLogger("beatfunc.core")
 logger.propagate = True
 
 
-def _load_beats_cached(audio_file: Path, loader: BeatLoader) -> Beats:
+def _load_beats_cached(audio_file: Path, backend: Backend) -> Beats:
     md5 = hashlib.md5()
     with audio_file.open("rb") as file:
         while block := file.read(512):
@@ -33,7 +34,7 @@ def _load_beats_cached(audio_file: Path, loader: BeatLoader) -> Beats:
         except:
             logger.exception("Failed to load cached beats at %s, regenerating", cached_beats)
 
-    beats = Beats.from_song(str(audio_file), beat_loader=loader)
+    beats = Beats.from_song(str(audio_file), backend=backend)
 
     with cached_beats.open("wb") as fp:
         pickle.dump(beats, fp)
@@ -68,8 +69,7 @@ def process_song_file(audio_file: Path, effects: t.List[Effect], min_bpm: int, m
     logger.info("Processing song at %s", audio_file)
     start = time.time()
 
-    def loader(f):
-        return load_beats_by_signal(f, min_bpm=min_bpm, max_bpm=max_bpm)
+    backend = MadmomDbnBackend(min_bpm, max_bpm, model_count=4)
 
     try:
         if audio_file.stat().st_size > config.MAX_FILE_SIZE:
@@ -77,7 +77,7 @@ def process_song_file(audio_file: Path, effects: t.List[Effect], min_bpm: int, m
             raise exc.SongTooLargeException(config.MAX_FILE_SIZE)
 
         try:
-            beats = _load_beats_cached(audio_file, loader=loader)
+            beats = _load_beats_cached(audio_file, backend)
         except Exception as e:
             logger.exception("Couldn't load song")
             raise exc.LoadException("Couldn't load song") from e
