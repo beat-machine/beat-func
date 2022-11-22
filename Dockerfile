@@ -12,7 +12,7 @@ COPY . .
 
 RUN set -x && \
     apt-get update && \
-    apt-get install -y libopenblas-dev portaudio19-dev fftw-dev ffmpeg git build-essential curl
+    apt-get install -y libopenblas-dev portaudio19-dev fftw-dev ffmpeg git build-essential curl libsndfile1
 
 # Uses the "beatfunc.simple" implementation
 RUN set -x && \

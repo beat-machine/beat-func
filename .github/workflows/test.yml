@@ -15,7 +15,7 @@ jobs:
           cache: 'poetry'
       - uses: awalsh128/cache-apt-pkgs-action@latest
         with:
-          packages: libopenblas-dev portaudio19-dev fftw-dev ffmpeg git build-essential curl
+          packages: libopenblas-dev portaudio19-dev fftw-dev ffmpeg git build-essential curl libsndfile1
           version: 1.0
       - name: Install dependencies
         run: |
