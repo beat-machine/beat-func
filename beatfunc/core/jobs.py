@@ -9,9 +9,9 @@ from pathlib import Path
 
 import yt_dlp
 from beatmachine import Beats
-from beatmachine.effect_registry import Effect
 from beatmachine.backend import Backend
 from beatmachine.backends.madmom import MadmomDbnBackend
+from beatmachine.effect_registry import Effect
 
 from . import config
 from . import exceptions as exc
