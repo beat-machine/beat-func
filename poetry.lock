@@ -48,8 +48,8 @@ soundfile = "^0.11.0"
 [package.source]
 type = "git"
 url = "https://github.com/beat-machine/beat-machine.git"
-reference = "7e270ae10bf9fc800e39fd0e2dd1aaeb0b02e084"
-resolved_reference = "7e270ae10bf9fc800e39fd0e2dd1aaeb0b02e084"
+reference = "v4.0.0-alpha.4"
+resolved_reference = "46397999b3eb993e6f97933c535675c868e84292"
 
 [[package]]
 name = "black"
@@ -593,7 +593,7 @@ simple = ["fastapi", "python-multipart", "uvicorn"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "dc86be05a20e4159ed023aa802bba0d3b9aee3e54522856034ea4bb4da1bf8ce"
+content-hash = "74d429d3e8bf10af73a45b7e221d64f7233f714ded8d4b6718959a98673e0fd6"
 
 [metadata.files]
 anyio = [
