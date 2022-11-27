@@ -6,22 +6,22 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - uses: exelban/gcloud@master
-      env:
-        PROJECT_ID: ${{secrets.PROJECT_ID}}
-        APPLICATION_CREDENTIALS: ${{secrets.APPLICATION_CREDENTIALS}}
-      with:
-        args: builds submit --tag gcr.io/beat-machine-244519/beatfunc
+      - uses: actions/checkout@v3
+      - uses: exelban/gcloud@master
+        env:
+          PROJECT_ID: ${{secrets.PROJECT_ID}}
+          APPLICATION_CREDENTIALS: ${{secrets.APPLICATION_CREDENTIALS}}
+        with:
+          args: builds submit --tag gcr.io/beat-machine-244519/beatfunc
 
   deploy:
     needs: build
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - uses: exelban/gcloud@master
-      env:
-        PROJECT_ID: ${{secrets.PROJECT_ID}}
-        APPLICATION_CREDENTIALS: ${{secrets.APPLICATION_CREDENTIALS}}
-      with:
-        args: --quiet beta run deploy beatfunc --image gcr.io/beat-machine-244519/beatfunc --platform managed --region us-central1
+      - uses: actions/checkout@v3
+      - uses: exelban/gcloud@master
+        env:
+          PROJECT_ID: ${{secrets.PROJECT_ID}}
+          APPLICATION_CREDENTIALS: ${{secrets.APPLICATION_CREDENTIALS}}
+        with:
+          args: --quiet beta run deploy beatfunc --image gcr.io/beat-machine-244519/beatfunc --platform managed --region us-central1
