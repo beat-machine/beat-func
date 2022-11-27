@@ -1,21 +1,22 @@
-FROM python:3.11-slim
-
-RUN set -x && \
-    apt-get update && \
-    apt-get install -y libopenblas-dev portaudio19-dev fftw-dev ffmpeg git libsndfile1 gcc g++
-
-RUN set -x && \
-    pip install poetry && \
-    poetry config virtualenvs.create false
-
-ENV APP_HOME /srv
-WORKDIR ${APP_HOME}
+FROM python:3.11 as wheel-builder
 
 COPY poetry.lock pyproject.toml ./
 
-RUN set -x && \
-    poetry install --only main --no-cache --no-root --no-interaction --no-ansi -E simple
+RUN pip install --no-cache-dir poetry && \
+    poetry config virtualenvs.create false
 
+RUN poetry export --without-hashes --without-urls > requirements.txt && \
+    pip wheel -r requirements.txt -w /root/wheels
+
+FROM python:3.11-slim
+
+RUN apt-get update -y && \
+    apt-get install -y --no-install-recommends ffmpeg
+
+COPY --from=wheel-builder /root/wheels /root/wheels
+RUN pip install --no-cache-dir --no-deps /root/wheels/*.whl
+
+WORKDIR /srv
 COPY . .
 
 ENV PORT 80
