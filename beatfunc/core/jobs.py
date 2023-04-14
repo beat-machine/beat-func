@@ -55,7 +55,7 @@ def download_song(url: str) -> Path:
                     "preferredquality": "192",
                 }
             ],
-            "outtmpl": str(audio_file.with_suffix(".mp4")),
+            "outtmpl": str(audio_file.with_suffix("")),
             "prefer_ffmpeg": True,
             "quiet": True,
         }
