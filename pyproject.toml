@@ -11,7 +11,7 @@ packages = [{include = "beatfunc"}]
 python = "^3.10"
 beatmachine = {git = "https://github.com/beat-machine/beat-machine.git", tag = "v4.0.0-alpha.4"}
 yt-dlp = "*"
-fastapi = "^0.86.0"
+fastapi = "^0.95.1"
 uvicorn = "^0.19.0"
 python-multipart = "^0.0.5"
 packaging = "^21.3"
