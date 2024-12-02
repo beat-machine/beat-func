@@ -1,4 +1,4 @@
-FROM python:3.11 as wheel-builder
+FROM python:3.12 as wheel-builder
 
 COPY poetry.lock pyproject.toml ./
 
@@ -8,7 +8,7 @@ RUN pip install --no-cache-dir poetry && \
 RUN poetry export --without-hashes --without-urls > requirements.txt && \
     pip wheel -r requirements.txt -w /root/wheels
 
-FROM python:3.11-slim
+FROM python:3.12-slim
 
 RUN apt-get update -y && \
     apt-get install -y --no-install-recommends ffmpeg
